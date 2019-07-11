@@ -1,4 +1,18 @@
-﻿###########
+<#
+Version: 1.2v
+Written by: Adam Russak
+About: This Script Creates a Generlized Image From VM to Storage VHD
+    The Script Goes trugh the following steps:
+        - Checks if Users is connected to Azure (AzureRm Comdlet)
+        - collecting Info for Operation in UI commands
+        - set azure subscription for the Scripts
+        - Deallocating resurces VM
+        - Create a Snapshot
+        - Create VHD from Sapshoot & transfer to Storage-Account
+        - Check Transfer Status
+#>
+
+###########
 #Functions#
 ###########
 #testing if Azure is connected (if not it will prompt loggin gui)
@@ -30,8 +44,6 @@ function Login
         Login-AzureRmAccount
     }
 }
-
-
 
 
 #run Fun to see login status
@@ -76,7 +88,6 @@ $sasExpiryDuration = "36000"
 #####################
 #runtime for the script
 $startTime = (Get-Date).Minute
-
 Set-AzureRmContext -SubscriptionId $Subscription
 
 ##############################
@@ -110,7 +121,6 @@ Write-Host "The Snapshoot Took $($EndTime2 - $startTime2) Minutes to Run"
 #create VHD from Sapshoot#
 ##########################
 $startTime3 = (Get-Date).Minute
-
 #Generate the SAS for the snapshot 
 $sas = Grant-AzureRmSnapshotAccess -ResourceGroupName $defaultRG -SnapshotName $SnapshotName  -DurationInSecond $sasExpiryDuration -Access Read 
 #Create the context for the storage account which will be used to copy snapshot to the storage account 
