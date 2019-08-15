@@ -3,6 +3,13 @@ Writen By: Adam Russak
 Version: 1.0.1v
 
 Description: 
+
+-- The Script will generate an output with all Blobs in storage account with size and container the blob is in.
+-- Output parameters:
+    = Container
+    = Blob Name
+    = Size (KB,GB,TB)
+
     - Script assume you are connected to Azure
     - Script uses AZ PowerShell Module
     - You will need to provide Resouce Group And Storage Account to the CLI 
