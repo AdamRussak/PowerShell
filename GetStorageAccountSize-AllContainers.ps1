@@ -40,7 +40,7 @@ ForEach ($CList in $Containers) {
                 [PSCustomObject]@{
                     "Container" = $containerName
                     "Blob Name" = $blobname.Name
-                    "Size (MB)" = $BlobSize
+                    "Size" = $BlobSize
                     }
                 }
     }
