@@ -3,7 +3,7 @@ Version: 1.2v
 Written by: Adam Russak
 About: This Script Creates a Generlized Image From VM to Storage VHD
     The Script Goes trugh the following steps:
-        - Checks if Users is connected to Azure (AzureRm Comdlet)
+        - Checks if Users is connected to Azure (Az Comdlet)
         - collecting Info for Operation in UI commands
         - set azure subscription for the Scripts
         - Deallocating resurces VM
@@ -21,7 +21,7 @@ function Login
     $needLogin = $true
     Try 
     {
-        $content = Get-AzureRmContext
+        $content = Get-AzContext
         if ($content) 
         {
             $needLogin = ([string]::IsNullOrEmpty($content.Account))
@@ -29,7 +29,7 @@ function Login
     } 
     Catch 
     {
-        if ($_ -like "*Login-AzureRmAccount to login*") 
+        if ($_ -like "*Login-AzAccount to login*") 
         {
             $needLogin = $true
         } 
@@ -41,12 +41,12 @@ function Login
 
     if ($needLogin)
     {
-        Login-AzureRmAccount
+        Login-AzAccount
     }
 }
 
 
-#run Fun to see login status
+#run Func to see login status
 Login
 ##################
 #Global-Variables#
@@ -88,17 +88,17 @@ $sasExpiryDuration = "36000"
 #####################
 #runtime for the script
 $startTime = (Get-Date).Minute
-Set-AzureRmContext -SubscriptionId $Subscription
+Set-AzContext -SubscriptionId $Subscription
 
 ##############################
 #Deallocate the VM resources#
 ##############################
 $startTime1 = (Get-Date).Minute
-Stop-AzureRmVM -ResourceGroupName $defaultRG -Name $VMNAME -Force
+Stop-AzVM -ResourceGroupName $defaultRG -Name $VMNAME -Force
 #Set the status of the virtual machine to Generalized.
-Set-AzureRmVm -ResourceGroupName $defaultRG -Name $VMNAME -Generalized
+Set-AzVm -ResourceGroupName $defaultRG -Name $VMNAME -Generalized
 #Check the status of the VM. The OSState/generalized section for the VM should have the DisplayStatus set to VM generalized.
-$vm = Get-AzureRmVM -ResourceGroupName $defaultRG -Name $VMNAME -Status
+$vm = Get-AzVM -ResourceGroupName $defaultRG -Name $VMNAME -Status
 $vm.Statuses
 #End of Deallocation Time output
 $EndTime1 = (Get-Date).Minute
@@ -109,10 +109,10 @@ Write-Host "The Deallocation Took $($EndTime1 - $startTime1) Minutes to Run"
 ####################
 $startTime2 = (Get-Date).Minute
 #getting RG and VM name 
-$createSnapshoot = Get-AzureRmVM -ResourceGroupName $defaultRG -Name $vmName
+$createSnapshoot = Get-AzVM -ResourceGroupName $defaultRG -Name $vmName
 #create the Snapshoot
-$snapshot =  New-AzureRmSnapshotConfig -SourceUri $createSnapshoot.StorageProfile.OsDisk.ManagedDisk.Id -Location $location -CreateOption copy
-New-AzureRmSnapshot -Snapshot $snapshot -SnapshotName $snapshotName -ResourceGroupName $defaultRG
+$snapshot =  New-AzSnapshotConfig -SourceUri $createSnapshoot.StorageProfile.OsDisk.ManagedDisk.Id -Location $location -CreateOption copy
+New-AzSnapshot -Snapshot $snapshot -SnapshotName $snapshotName -ResourceGroupName $defaultRG
 #End of Snapshoot Time output
 $EndTime2 = (Get-Date).Minute
 Write-Host "The Snapshoot Took $($EndTime2 - $startTime2) Minutes to Run"
@@ -122,11 +122,11 @@ Write-Host "The Snapshoot Took $($EndTime2 - $startTime2) Minutes to Run"
 ##########################
 $startTime3 = (Get-Date).Minute
 #Generate the SAS for the snapshot 
-$sas = Grant-AzureRmSnapshotAccess -ResourceGroupName $defaultRG -SnapshotName $SnapshotName  -DurationInSecond $sasExpiryDuration -Access Read 
+$sas = Grant-AzSnapshotAccess -ResourceGroupName $defaultRG -SnapshotName $SnapshotName  -DurationInSecond $sasExpiryDuration -Access Read 
 #Create the context for the storage account which will be used to copy snapshot to the storage account 
-$destinationContext = New-AzureStorageContext –StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey  
+$destinationContext = New-AzStorageContext –StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey  
 #Copy the snapshot to the storage account 
-Start-AzureStorageBlobCopy -AbsoluteUri $sas.AccessSAS -DestContainer $storageContainerName -DestContext $destinationContext -DestBlob $destinationVHDFileName
+Start-AzStorageBlobCopy -AbsoluteUri $sas.AccessSAS -DestContainer $storageContainerName -DestContext $destinationContext -DestBlob $destinationVHDFileName
 #End of Script Time output
 $EndTime3 = (Get-Date).Minute
 Write-Host "Creating the VHD Took $($EndTime3 - $startTime3) Minutes to Run"
@@ -136,7 +136,7 @@ Write-Host "The Script Took $($EndTime - $startTime) Minutes to Run"
 #######################
 #Check VHD Copy Status#
 #######################
-Get-AzureStorageBlobCopyState -Blob $destinationVHDFileName -Container $storageContainerName -Context $destinationContext -WaitForComplete
+Get-AzStorageBlobCopyState -Blob $destinationVHDFileName -Container $storageContainerName -Context $destinationContext -WaitForComplete
 
 ###################
 ###End Of Script###
