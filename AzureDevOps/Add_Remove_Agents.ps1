@@ -1,12 +1,13 @@
 param (
   [string]$rootPath = "c:\",
-  [string]$RemoveAzureURL,
-  [string]$InstallAzureURL,
+  [string]$RemoveAzureURL = "https://adam-dc01/DefaultCollection/",
+  [string]$InstallAzureURL = "https://adam-dc01/DefaultCollection/",
   [string]$Pass,
   [string]$user,
   [string]$AzurePool,
   [string]$pat
 )
+#TOkEN:g47wmt6neeeydu5rc7rnqeuvj5ozylojcwhy7tsh4mzjki4ekr4q
 <#
 #need to do:
 - remoge with negotiate and isntall PAT
@@ -36,6 +37,7 @@ function SelectionMenu {
   Write-Host "3: Remove And Re-install -- ALL"
   Write-Host "4: Remove And Re-install -- Selected"
   Write-Host "5: Remove And Re-install New Agents (clean install)"
+  Write-Host "6: install New Agents (clean install)"
   Write-Host "Q: Press 'Q' to quit." -foreground red
 }
 function MultiSelection{
@@ -150,11 +152,14 @@ switch ($input1) {
   }'5'{
     Write-Host "Remove And Re-install New Agents (clean install)"
     $ActionSelection = "rm-install-clean"
+  }'6'{
+    Write-Host "install New Agents (clean install)"
+    $ActionSelection = "install-clean"
   }'q' {
       return
   }
 }
-while (($input1 -gt 5) -or ($input1 -lt 1)) {
+while (($input1 -gt 6) -or ($input1 -lt 1)) {
   $input1 = Read-Host "Please select The Output Format"
   switch ($input1) {
     '1' {
@@ -169,6 +174,12 @@ while (($input1 -gt 5) -or ($input1 -lt 1)) {
     }'4'{
         Write-Host "Remove And Re-install -- Selected"
         $ActionSelection = "rm-install-selected"
+    }'5'{
+      Write-Host "Remove And Re-install New Agents (clean install)"
+      $ActionSelection = "rm-install-clean"
+    }'6'{
+      Write-Host "install New Agents (clean install)"
+      $ActionSelection = "install-clean"
     }'q' {
         return
     }
@@ -255,7 +266,26 @@ elseif ($ActionSelection -like "rm-install-clean") {
   {
     [int]$NewAgentsAmount = Read-Host "Please enter the number of Agents to install (1-9)"
   }
-  $output=NewAgent -RootPath $rootPath -NewAgentDirectory $NewAgentDirectory -NewAgentsAmount $NewAgentsAmount
+  NewAgent -RootPath $rootPath -NewAgentDirectory $NewAgentDirectory -NewAgentsAmount $NewAgentsAmount
+  for($i = 0; $i -lt $NewAgentsAmount; $i++) {
+    $AgentName=$env:COMPUTERNAME.ToLower() + "-0$($i+1)"
+    $number=$i+1
+    $NewAgentPath= "$rootPath$NewAgentDirectory"+"0"+$number+"\config.cmd"
+    InstallRemoveAgent -method "install-pat-clean" -NewAgentPath $NewAgentPath -InstallAzureURL $InstallAzureURL -token $pat -AzurePool $AzurePool -AgentName $AgentName
+  }
+}
+elseif ($ActionSelection -like "install-clean") {
+  $NewAgentDirectory = Read-Host "Please enter Agents Folders Name (Limited to 2 character)"
+  while(($NewAgentDirectory.ToCharArray() | Measure-Object).Count -ne 2 )
+  {
+    $NewAgentDirectory = Read-Host "Please enter Agents Folders Name (Limited to 2 character)"
+  }
+  [int]$NewAgentsAmount = Read-Host "Please enter the number of Agents to install (1-9)"
+  while($NewAgentsAmount -gt 9)
+  {
+    [int]$NewAgentsAmount = Read-Host "Please enter the number of Agents to install (1-9)"
+  }
+  NewAgent -RootPath $rootPath -NewAgentDirectory $NewAgentDirectory -NewAgentsAmount $NewAgentsAmount
   for($i = 0; $i -lt $NewAgentsAmount; $i++) {
     $AgentName=$env:COMPUTERNAME.ToLower() + "-0$($i+1)"
     $number=$i+1
