@@ -1,13 +1,12 @@
 param (
   [string]$rootPath = "c:\",
-  [string]$RemoveAzureURL = "https://adam-dc01/DefaultCollection/",
-  [string]$InstallAzureURL = "https://adam-dc01/DefaultCollection/",
+  [string]$RemoveAzureURL,
+  [string]$InstallAzureURL,
   [string]$Pass,
   [string]$user,
   [string]$AzurePool,
   [string]$pat
 )
-#TOkEN:g47wmt6neeeydu5rc7rnqeuvj5ozylojcwhy7tsh4mzjki4ekr4q
 <#
 #need to do:
 - remoge with negotiate and isntall PAT
