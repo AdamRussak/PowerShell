@@ -124,11 +124,12 @@ function InstallRemoveAgent {
 }
 #get all agents installed on C:
 if ($Check -like "True") {
-  $ScanComputer=Get-ChildItem -recurse $rootPath -Directory -Depth 0 | Where-Object {($_.name -notmatch "Program Files|Users|Windows")}
+  $ScanComputer=Get-ChildItem -recurse c:\ -Directory -Depth 0 | Where-Object {($_.name -notmatch "Program Files|Users|Windows")}
   $agentsList=@()
-  foreach ($scan in $ScanComputer) {
-    Write-Host "Scanning"$scan.Name"..." -ForegroundColor yellow
-    $findConfigs=Get-ChildItem -Path $scan.FullName -Include *.cmd -file -Filter config.cmd -Depth 0
+  $t = {
+  param ([string]$Path)
+    Write-Host "Scanning"$_.Name"..." -ForegroundColor yellow
+    $findConfigs=Get-ChildItem -Path $_.FullName -Include *.cmd -file -Filter config.cmd -Depth 0
     if ($null -ne $findConfigs) {
       foreach ($findConfig in $findConfigs) {
         $outputs=get-ChildItem -Path $findConfig.PSParentPath -Filter *.cmd
@@ -136,11 +137,13 @@ if ($Check -like "True") {
           $compare=$agentsList | where-object {$_.DirectoryPath -like $output.Directory.fullname}
           if (($outputs.Count -eq 2) -and ($null -eq $compare)) {
             $agentsList+=[pscustomobject]@{Agent=$output.Directory.Name;FullName=$output.FullName;DirectoryPath=$output.Directory.fullname}
+            $agentsList
           }
         }
       }
     }
   }
+  $agentsList= @($ScanComputer | ForEach-Object -process { Invoke-Command -scriptblock $t -argumentlist $_ })
 }
 #Action Selection
 SelectionMenu -LocalAgents $agentsList.Agent
