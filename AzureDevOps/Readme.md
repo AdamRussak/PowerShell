@@ -1,6 +1,10 @@
 # Azure DevOps Agents Managment
 this script is ment to help you find old Azure DevOps/TFS Agent instlletion on windows and configure them or remove them
 
+### Update:
+* added Only Download Agent
+* added Check Flag to skip Agnet Directorys Scann, if you wish to skip scan add `-check "false"`
+
 ## How-to Run the Script
 1. run the script *As an administrator* with all needed CLI paramters:
 ```Add_Remove_Agents.ps1 -rootPath c:\ -InstallAzureURL https://<URL>/DefaultCollection/ -RemoveAzureURL https://<URL>/DefaultCollection/ -user "<User>" -Pass "<Password>" -pat "<TOKEN>" -AzurePool <AgentsPool>```
@@ -13,6 +17,7 @@ this script is ment to help you find old Azure DevOps/TFS Agent instlletion on w
         - [ ] $user
         - [ ] $AzurePool
         - [ ] $pat
+        - [ ] $Check (Default = "true")
     * the script will search for Agents Folders in the pre-set `$RootDirectory` and give you and out put in the CLI menu.
 ![](Images/cli_main.jpg)
 * Select desired Option.
